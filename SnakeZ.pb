@@ -63,7 +63,6 @@ Enumeration
 EndEnumeration
 
 Enumeration
-	#Sound_music
 	#Sound_start
 	#Sound_respawn
 	#Sound_eat1
@@ -1324,9 +1323,6 @@ Procedure Game_TestEvents()
 				*player\nextUpdateTime = #UpdateTime
 			EndIf
 			
-; 			If KeyboardPushed(#PB_Key_Subtract)
-; 				Zoom * 0.5
-; 			EndIf
 			If KeyboardPushed(#PB_Key_Left)
 				dx = -1
 			ElseIf KeyboardPushed(#PB_Key_Right)
@@ -1426,8 +1422,7 @@ Procedure Game_New()
 	
 	FoodCountStart = ListSize(Food())
 	LongestSnake = 0
-	
-; 	Sound_Play(#Sound_music, 100, #PB_Sound_Loop)
+
 EndProcedure
 
 If FullScreen
