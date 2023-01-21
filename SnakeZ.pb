@@ -43,7 +43,7 @@ UseOGGSoundDecoder()
 #PI2 = #PI * 2
 
 Enumeration
-	#Snake_Respwawning
+	#Snake_Respawning
 	#Snake_Alive
 	#Snake_Crashed
 EndEnumeration
@@ -52,9 +52,9 @@ Enumeration
 	#Sprite_FirstSnake
 	#Sprite_LastSnake = #Sprite_FirstSnake + #MaxSnakes
 	#Sprite_Food
-	#Sprite_FoodLast = #Sprite_Food + #MaxColors
+	#Sprite_FoodLast = #Sprite_Food + #MaxColors - 1
 	#Sprite_SuperFood
-	#Sprite_SuperFoodLast = #Sprite_SuperFood + #MaxColors
+	#Sprite_SuperFoodLast = #Sprite_SuperFood + #MaxColors - 1
 	#Sprite_Egg
 	#Sprite_Eye
 	#Sprite_EyeClosed
@@ -63,6 +63,7 @@ Enumeration
 EndEnumeration
 
 Enumeration
+	#Sound_music
 	#Sound_start
 	#Sound_respawn
 	#Sound_eat1
@@ -273,18 +274,12 @@ Procedure Food_Add(x, y, index.a)
 			*food\x = x
 			*food\y = y
 			*food\index = index
+			
 			Field_Set(food, *food)
 		EndIf
 	EndIf
 	
 	ProcedureReturn *food
-EndProcedure
-
-Procedure Food_Remove(*food.Food)
-	If *food
-		ChangeCurrentElement(Food(), *food)
-		DeleteElement(Food())
-	EndIf
 EndProcedure
 
 Procedure Spark_Add(x, y, sprite.l, count = 0)
@@ -351,7 +346,7 @@ Procedure Snake_Add(index, length = #StartLength, radius = #StartRadius, respawn
 			If y1 >= 0 And y1 < #FieldHeight
 				For x1 = fx - n To fx + n
 					If x1 >= 0 And x1 < #FieldWidth
-						If MapSize(Field(x1 + y1 * #FieldWidth)\body()); Or MapSize(Field(x1, y1)\food())
+						If MapSize(Field(x1 + y1 * #FieldWidth)\body())
 							empty = #False
 							Break 2
 						EndIf
@@ -369,7 +364,7 @@ Procedure Snake_Add(index, length = #StartLength, radius = #StartRadius, respawn
 			With *snake
 				\style = @SnakeStyle(Random(#MaxStyles - 1))
 				\index = index
-				\state = #Snake_Respwawning
+				\state = #Snake_Respawning
 				\angle = Radian(180)
 				\direction = \angle
 				\radius = radius
@@ -444,7 +439,7 @@ EndProcedure
 Procedure Game_Update(dTime.d)
 	Protected.d x, y, angle, radius, dist, dirX, dirY
 	Protected fx, fy
-	Protected count, i, index
+	Protected count, i, index, snakeIsVisible
 	Protected.Snake *snake, *collisionSnake
 	Protected.Body *head, *body, *tail
 	Protected.Food *food
@@ -469,12 +464,13 @@ Procedure Game_Update(dTime.d)
 	EndIf
 	
 	
-	If Random(15) = 0
-		; randomly add food somewhere on the map
-		i = 0
-		While (ListSize(Food()) < FoodCountStart) And (i < 150)
-			Food_Add(x, y, Random(#MaxColors, 1))
-			i + 1
+	If Random(50) = 0
+		i = Random(200, 100)		
+		While (ListSize(Food()) < FoodCountStart) And (i > 0)
+			x = Random(#AreaWidth - 1)
+			y = Random(#AreaHeight - 1)
+			Food_Add(x, y, Random(#MaxColors - 1))
+			i - 1
 		Wend
 	EndIf
 	
@@ -499,7 +495,7 @@ Procedure Game_Update(dTime.d)
 		EndIf
 				
 		
-		If *snake\state = #Snake_Respwawning
+		If *snake\state = #Snake_Respawning
 			; snake is respawning
 			
 			If Time > *snake\respawnTime
@@ -528,6 +524,7 @@ Procedure Game_Update(dTime.d)
 				
 				Food_Add(*snake\body()\x, *snake\body()\y, index + #MaxColors)
 				Field_Unset(body, *snake\body())
+				
 				DeleteElement(*snake\body())
 				i - 1
 			Wend
@@ -603,6 +600,16 @@ Procedure Game_Update(dTime.d)
 				
 				Field_Set(body, *head)
 				
+				x = (*head\x + ScrollX) * Zoom
+				y = (*head\y + ScrollY) * Zoom
+				If x < 0 Or x > width Or y < 0 Or y > height
+					snakeIsVisible = #False
+					ClearList(*snake\food())
+				Else
+					snakeIsVisible = #True
+				EndIf
+					
+				
 				*tail = LastElement(*snake\body())
 				If *tail				
 					
@@ -648,7 +655,7 @@ Procedure Game_Update(dTime.d)
 							y1 = fy : y2 = fy + g
 					EndSelect
 					
-					Protected angleDif.d, nCollision, nFood, nSuperFood
+					Protected nCollision, nFood, nSuperFood
 					Protected.d collisionX, collisionY, foodX, foodY, foodMinDist
 					
 					nCollision = 0
@@ -691,7 +698,7 @@ Procedure Game_Update(dTime.d)
 										*collisionSnake = *SnakeList(*body\snakeIndex)
 										If *collisionSnake And (Distance(*head, *body) < (radius + *collisionSnake\radius))
 											
-											If *collisionSnake\state = #Snake_Respwawning
+											If *collisionSnake\state = #Snake_Respawning
 												Snake_Crash(*collisionSnake)
 												Snake_Kill(*collisionSnake)
 												
@@ -721,40 +728,23 @@ Procedure Game_Update(dTime.d)
 									If dist < (radius + #FoodRadius + 30)
 										
 										If *food\index < #MaxColors
-											; normal food
 											*snake\scoreCount + #FoodScore
 										Else
-											; super food
 											nSuperFood + 1
 											*snake\scoreCount + #SuperFoodScore
 										EndIf
 										
-										If ListSize(Food()) < FoodCountStart
-											; randomly place more food on the map
-											If Random(10) = 0
-												x = #AreaWidth - *food\x
-												y = #AreaHeight - *food\y
-												Food_Add(x, y, Random(#MaxColors, 1))
-											ElseIf Random(5) = 0
-												x = Rnd(#FoodRadius * 5, #AreaWidth - #FoodRadius * 5)
-												y = Rnd(#FoodRadius * 5, #AreaHeight - #FoodRadius * 5)
-												Food_Add(x, y, Random(#MaxColors, 1))
-											EndIf
-										EndIf
-										
-										
- 										x = (*head\x + ScrollX) * Zoom
- 										y = (*head\y + ScrollY) * Zoom
-										If x > 0 And x < width And y > 0 And y < height
-											; snake head is visible - add this food to the snakes food list
-											; (for the 'food suck' animation)
+										If snakeIsVisible
+											; add this food to the snakes food list (for the 'food suck' animation)
 											If AddElement(*snake\food())
 												CopyStructure(*food, *snake\food(), Food)
 											EndIf
 										EndIf
 										
-										Field_Unset(food, *food)
-										Food_Remove(*food)
+										ChangeCurrentElement(Food(), *food)
+										DeleteElement(Food())
+										
+										DeleteMapElement(*cell\food())
 										
 									ElseIf dist < foodMinDist
 										
@@ -807,7 +797,9 @@ Procedure Game_Update(dTime.d)
 						While LastElement(*snake\body()) And (ListSize(*snake\body()) > (#StartLength + *snake\score / 10))
 							; shrink snake
 							Spark_Add(*snake\body()\x, *snake\body()\y, #Sprite_Food + *snake\style\color(*snake\body()\index % *snake\style\nrColors), 15)
+							
 							Field_Unset(body, *snake\body())
+							
 							DeleteElement(*snake\body())
 						Wend
 					EndIf
@@ -933,16 +925,13 @@ Procedure Game_Draw()
 			; draw sucked in food
 			ForEach *snake\food()
 				*food = *snake\food()
-				radius = Max(#FoodRadius, #FoodRadius + Sin((*food + Time) * 0.004) * 5) * Zoom
 				sprite = Sprite(#Sprite_Food + *food\index)
-				If sprite
-					If *food\index >= #Sprite_SuperFood And *food\index <= #Sprite_SuperFoodLast
-						radius * 3
-					EndIf
-					ZoomSprite(sprite, radius, radius)
-					DisplayTransparentSprite(sprite, (*food\x + ScrollX) * Zoom - radius * 0.5, (*food\y + ScrollY) * Zoom - radius * 0.5)
-					DisplayTransparentSprite(sprite, (*food\x + ScrollX) * Zoom - radius * 0.5, (*food\y + ScrollY) * Zoom - radius * 0.5)
+				radius = Max(#FoodRadius, #FoodRadius + Sin((*food + Time) * 0.004) * 5) * Zoom
+				If *food\index >= #MaxColors
+					radius * 3
 				EndIf
+				ZoomSprite(sprite, radius, radius)
+				DisplayTransparentSprite(sprite, (*food\x + ScrollX) * Zoom - radius * 0.5, (*food\y + ScrollY) * Zoom - radius * 0.5)
 			Next
 			
 			; draw the snake
@@ -1028,11 +1017,11 @@ Procedure Game_Draw()
 						
 						
 						; draw egg if snake is respawning
-						If *snake\state = #Snake_Respwawning
+						If *snake\state = #Snake_Respawning
 							radius = Zoom * ((*snake\radius * 5) + Sin(Time * 0.01) * 10) + 25
 							If Time > *snake\respawnTime - 250
 								fade = (*snake\respawnTime - Time) / 250.0
-								radius * (1 - fade) * 5
+								radius * (1 - fade) * 2
 							Else
 								fade = 1
 							EndIf
@@ -1206,7 +1195,7 @@ Procedure Game_Draw()
 		
 		Protected text.s
 		
-		CompilerIf #DEBUGMODE
+		CompilerIf 1;#DEBUGMODE
 			text = "FPS:  " + Str(FPS)
 			DrawText(20, 30, text, RGB(128,128,128))
 			text = "SNAKES:  " + Str(ListSize(Snake()))
@@ -1323,6 +1312,9 @@ Procedure Game_TestEvents()
 				*player\nextUpdateTime = #UpdateTime
 			EndIf
 			
+; 			If KeyboardPushed(#PB_Key_Subtract)
+; 				Zoom * 0.5
+; 			EndIf
 			If KeyboardPushed(#PB_Key_Left)
 				dx = -1
 			ElseIf KeyboardPushed(#PB_Key_Right)
@@ -1377,7 +1369,7 @@ Procedure Game_Free()
 EndProcedure
 
 Procedure Game_New()
-	Protected i, index, s, startColor, colIncr, foodCount, foodPerCell = 2
+	Protected i, s, index, startColor, colIncr, foodCount, foodPerCell = 2
 	
 	Game_Free()
 	
@@ -1414,15 +1406,16 @@ Procedure Game_New()
 	For i = 1 To 50
  		Snake_Add(#Sprite_FirstSnake + i)
  	Next
- 	 	
+ 	
 	foodCount = ((#AreaWidth * #AreaHeight) / (#CellSize * #CellSize)) * foodPerCell
 	For i = 1 To foodCount
-		Food_Add(Rnd(#FoodRadius, #AreaWidth - #FoodRadius), Rnd(#FoodRadius, #AreaHeight - #FoodRadius), Random(#MaxColors, 1))
+		Food_Add(Rnd(#FoodRadius, #AreaWidth - #FoodRadius), Rnd(#FoodRadius, #AreaHeight - #FoodRadius), Random(#MaxColors - 1, 1))
 	Next
 	
 	FoodCountStart = ListSize(Food())
 	LongestSnake = 0
-
+	
+ 	Sound_Play(#Sound_music, 100, #PB_Sound_Loop)
 EndProcedure
 
 If FullScreen
@@ -1461,12 +1454,13 @@ Repeat
  	Delay(5)
 ForEver
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 1300
-; FirstLine = 1280
+; CursorPosition = 1454
+; FirstLine = 1422
 ; Folding = -----
 ; Optimizer
 ; EnableXP
 ; DPIAware
 ; UseIcon = icon\SnakeZ.ico
 ; Executable = SnakeZ.exe
+; Compiler = PureBasic 6.00 LTS - C Backend (Windows - x64)
 ; DisablePurifier = 1,1,1,1
