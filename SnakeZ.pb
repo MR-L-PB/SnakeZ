@@ -9,24 +9,29 @@ UseOGGSoundDecoder()
 
 #DEBUGMODE = 0
 
-#Brightness = 1.0
 #FieldWidth = 100
 #FieldHeight = 50
 #CellSize = 100
-#SpriteSize  = 128
-#SpriteSizeH  = #SpriteSize * 0.5
 #AreaWidth = #FieldWidth * #CellSize
 #AreaHeight = #FieldHeight * #CellSize
+
+#SpriteQuality = #PB_Sprite_NoFiltering; #PB_Sprite_BilinearFiltering
+#SpriteSize = 128
+#SpriteSizeH = #SpriteSize * 0.5
+
 #FoodPerCellMax = 10
 #FoodScore = 1
 #SuperFoodScore = 10
+
 #MaxSnakes = 255
 #MaxRadius = 100
 #MaxStyles = 255
 #MaxColors = 32
+
 #StartRadius = 15
 #StartLength = 5
 #FoodRadius = 15
+
 #UpdateTime = 150
 #RaceTime = #UpdateTime / 3
 #Speed = 25
@@ -34,6 +39,7 @@ UseOGGSoundDecoder()
 #RespawnTime = 3000
 #ExplosionTime = 1000
 #ExplosionDistance = 2000
+
 #PI2 = #PI * 2
 
 Enumeration
@@ -161,20 +167,17 @@ Macro Distance(body1_, body2_)
 	Sqr((body1_\x - body2_\x) * (body1_\x - body2_\x) + (body1_\y - body2_\y) * (body1_\y - body2_\y))
 EndMacro
 
+
 Macro Field_Set(map_, type_)
 	Define fx_ = type_\x / #CellSize
 	Define fy_ = type_\y / #CellSize
-; 	If fx_ > -1 And fx_ <= #FieldWidth And fy_ > -1 And fy_ <= #FieldHeight
-		Field(fx_ + fy_ * #FieldWidth)\map_(Str(type_)) = type_
-; 	EndIf
+	Field(fx_ + fy_ * #FieldWidth)\map_(Str(type_)) = type_
 EndMacro
 
 Macro Field_Unset(map_, type_)
 	Define fx_ = type_\x / #CellSize
 	Define fy_ = type_\y / #CellSize
-; 	If fx_ > -1 And fx_ <= #FieldWidth And fy_ > -1 And fy_ <= #FieldHeight	
-		DeleteMapElement(Field(fx_ + fy_ * #FieldWidth)\map_(), Str(type_))
-; 	EndIf
+	DeleteMapElement(Field(fx_ + fy_ * #FieldWidth)\map_(), Str(type_))
 EndMacro
 
 Procedure.d Rnd(min.d, max.d)
@@ -206,8 +209,8 @@ Procedure.d Clamp(v.d, a.d, b.d)
 EndProcedure
 
 Procedure.d AngleDifference(angle1.d, angle2.d)
-	angle1 = Mod(angle1,  #PI2)
-	angle2 = Mod(angle2,  #PI2)
+	angle1 = Mod(angle1, #PI2)
+	angle2 = Mod(angle2, #PI2)
 	ProcedureReturn Mod(((angle1 - angle2) + #PI + #PI2), #PI2) - #PI
 EndProcedure
 
@@ -231,15 +234,16 @@ EndProcedure
 Procedure Sounds_Load(path.s)
 	Protected error
 	
-	error + Bool(LoadSound(#Sound_start, path + "Sound_start.ogg") = 0)
-	error + Bool(LoadSound(#Sound_respawn, path + "Sound_respawn.ogg") = 0)
-	error + Bool(LoadSound(#Sound_eat1, path + "Sound_eat1.ogg") = 0)
-	error + Bool(LoadSound(#Sound_eat2, path + "Sound_eat2.ogg") = 0)
-	error + Bool(LoadSound(#Sound_eatEgg, path + "Sound_eatEgg.ogg") = 0)
-	error + Bool(LoadSound(#Sound_explosion1, path + "Sound_explosion1.ogg") = 0)
-	error + Bool(LoadSound(#Sound_explosion2, path + "Sound_explosion2.ogg") = 0)
-	error + Bool(LoadSound(#Sound_speedUp, path + "Sound_speedUp.ogg") = 0)
-	error + Bool(LoadSound(#Sound_grow, path + "Sound_grow.ogg") = 0)
+; 	error + Bool(LoadSound(#Sound_start, path + "sound_music.ogg") = 0)
+	error + Bool(LoadSound(#Sound_start, path + "sound_start.ogg") = 0)
+	error + Bool(LoadSound(#Sound_respawn, path + "sound_respawn.ogg") = 0)
+	error + Bool(LoadSound(#Sound_eat1, path + "sound_eat1.ogg") = 0)
+	error + Bool(LoadSound(#Sound_eat2, path + "sound_eat2.ogg") = 0)
+	error + Bool(LoadSound(#Sound_eatEgg, path + "sound_eatEgg.ogg") = 0)
+	error + Bool(LoadSound(#Sound_explosion1, path + "sound_explosion1.ogg") = 0)
+	error + Bool(LoadSound(#Sound_explosion2, path + "sound_explosion2.ogg") = 0)
+	error + Bool(LoadSound(#Sound_speedUp, path + "sound_speedUp.ogg") = 0)
+	error + Bool(LoadSound(#Sound_grow, path + "sound_grow.ogg") = 0)
 	
 	If error
 		PlaySounds = 0
@@ -281,8 +285,6 @@ Procedure Food_Remove(*food.Food)
 	If *food
 		ChangeCurrentElement(Food(), *food)
 		DeleteElement(Food())
-	Else
-		Debug "NO FOOD TO DELETE!!!":End
 	EndIf
 EndProcedure
 
@@ -350,7 +352,7 @@ Procedure Snake_Add(index, length = #StartLength, radius = #StartRadius, respawn
 			If y1 >= 0 And y1 < #FieldHeight
 				For x1 = fx - n To fx + n
 					If x1 >= 0 And x1 < #FieldWidth
-						If MapSize(Field(x1 + y1 * #FieldWidth)\body()); Or  MapSize(Field(x1, y1)\food())
+						If MapSize(Field(x1 + y1 * #FieldWidth)\body()); Or MapSize(Field(x1, y1)\food())
 							empty = #False
 							Break 2
 						EndIf
@@ -418,10 +420,6 @@ Procedure Snake_Crash(*snake.Snake, size.d = 0.85)
 		EndIf
 	EndIf
 	
-; 	ForEach *snake\body()
-; 		*snake\body()\index = ListIndex(*snake\body())
-; 	Next
-	
 	*snake\state = #Snake_Crashed
 EndProcedure
 
@@ -430,7 +428,7 @@ Procedure Snake_Kill(*snake.Snake)
 	ForEach *snake\body()
 		Field_Unset(body, *snake\body())
 	Next
-		
+	
 	ClearList(*snake\body())
 	ClearList(*snake\food())
 	
@@ -472,7 +470,7 @@ Procedure Game_Update(dTime.d)
 	EndIf
 	
 	
-	If Random(40) = 0
+	If Random(15) = 0
 		; randomly add food somewhere on the map
 		i = 0
 		While (ListSize(Food()) < FoodCountStart) And (i < 150)
@@ -561,8 +559,6 @@ Procedure Game_Update(dTime.d)
 						EndIf
 					EndIf
 				EndIf
-				
-				
 				
 				If Time >= *snake\nextTime
 					; move the last snake part to the first
@@ -686,12 +682,12 @@ Procedure Game_Update(dTime.d)
 					For fya = y1 To y2
 						For fxa = x1 To x2
 							
-							If fxa >= 0 And fxa < #FieldWidth And fya >= 0  And fya < #FieldHeight
+							If fxa >= 0 And fxa < #FieldWidth And fya >= 0 And fya < #FieldHeight
 								*cell = @Field(fxa + fya * #FieldWidth)
 								
 								ForEach *cell\body()
 									*body = *cell\body()
-									If *body And (*body\snakeIndex <> *snake\index) ; <-  make sure that the snake is not colliding with itself
+									If *body And (*body\snakeIndex <> *snake\index) ; <- make sure that the snake is not colliding with itself
 										
 										*collisionSnake = *SnakeList(*body\snakeIndex)
 										If *collisionSnake And (Distance(*head, *body) < (radius + *collisionSnake\radius))
@@ -833,7 +829,6 @@ Procedure Game_Update(dTime.d)
 								If *snake\index = #Sprite_FirstSnake
 									Sound_Play(#Sound_grow)
 								EndIf
-;  								*snake\nextTime = 0
 							Next
 						EndIf
 					EndIf
@@ -866,7 +861,7 @@ Procedure Game_Draw()
 	Protected sprite, spriteW, spriteH
 	Protected *player.Snake = *SnakeList(#Sprite_FirstSnake)
 	Protected *snake.Snake
-	Protected NewMap drawSnake()
+	Protected NewMap visibleSnake()
 	
 	If FullScreen = #False
 		width = DesktopScaledX(ScreenW)
@@ -879,7 +874,7 @@ Procedure Game_Draw()
 	
  	ClearScreen(RGB(0,0,0))
 	
-;   	SpriteQuality(#PB_Sprite_BilinearFiltering)
+	SpriteQuality(#SpriteQuality)
  	
  	If gridX > 5
  		minX = Max(0, ScrollX * Zoom) - gridX
@@ -905,6 +900,7 @@ Procedure Game_Draw()
  		Wend
  	EndIf
  	
+ 	; determine which snake body parts are visible
 	incr = #CellSize	
 	maxX = (width / Zoom) + #CellSize * 2
 	maxY = (height / Zoom) + #CellSize * 2
@@ -920,7 +916,7 @@ Procedure Game_Draw()
 					
 					ForEach *cell\body()
 						*cell\body()\isVisible = 1
-						drawSnake(Str(*cell\body()\snakeIndex)) = *cell\body()\snakeIndex
+						visibleSnake(Chr(*cell\body()\snakeIndex)) = *cell\body()\snakeIndex
 					Next
 					
 				EndIf
@@ -930,10 +926,10 @@ Procedure Game_Draw()
 		y1 + incr
 	Wend
 	
-	ForEach drawSnake()
-		*snake = *SnakeList(drawSnake())
+	ForEach visibleSnake()
+		*snake = *SnakeList(visibleSnake())
 		
-		If *snake And (ListSize(*snake\body()) > 0)
+		If ListSize(*snake\body()) > 0
 			
 			; draw sucked in food
 			ForEach *snake\food()
@@ -979,13 +975,14 @@ Procedure Game_Draw()
 						y = *previous\y + (*body\y - *previous\y) * *snake\delta
 						
 						If (index >= tailIndex) And (*snake\wobbleTime > Time)
+							; snake tail wobble effect
 							Protected fade.d = (*snake\wobbleTime - Time) / 1000.0
 							radius + Sin(Time * 0.025 - index) * (fade * 25)
-; 							sprite = Sprite(#Sprite_Explosion);Sprite(#Sprite_Explosion + *snake\style\color(index % *snake\style\nrColors))
+
 							ZoomSprite(sprite, radius, radius)
 							DisplayTransparentSprite(sprite,
 							                         (x + ScrollX) * Zoom - radius * 0.5,
-							                         (y + ScrollY) * Zoom - radius * 0.5);, fade * 255)
+							                         (y + ScrollY) * Zoom - radius * 0.5)
 						Else
 							ZoomSprite(sprite, radius, radius)
 							DisplayTransparentSprite(sprite,
@@ -1020,7 +1017,7 @@ Procedure Game_Draw()
 						y = *head\y + ScrollY - radius
 						
 						ZoomSprite(sprite, radius * 2 * Zoom, radius * 2 * Zoom)
-						RotateSprite(sprite,  -Degree(*snake\angle), #PB_Absolute)
+						RotateSprite(sprite, -Degree(*snake\angle), #PB_Absolute)
 						
 						DisplayTransparentSprite(sprite,
 						                         (x + Sin(*snake\angle - Radian(35)) * radius * 1.15) * Zoom,
@@ -1034,10 +1031,16 @@ Procedure Game_Draw()
 						; draw egg if snake is respawning
 						If *snake\state = #Snake_Respwawning
 							radius = Zoom * ((*snake\radius * 5) + Sin(Time * 0.01) * 10) + 25
+							If Time > *snake\respawnTime - 250
+								fade = (*snake\respawnTime - Time) / 250.0
+								radius * (1 - fade) * 5
+							Else
+								fade = 1
+							EndIf
 							x = (*head\x + ScrollX) * Zoom - radius * 0.5
 							y = (*head\y + ScrollY) * Zoom - radius * 0.6
 							ZoomSprite(Sprite(#Sprite_Egg), radius, radius)
-							DisplayTransparentSprite(Sprite(#Sprite_Egg), x, y)
+							DisplayTransparentSprite(Sprite(#Sprite_Egg), x, y, fade * 255)
 						EndIf
 						
 					EndIf
@@ -1050,25 +1053,18 @@ Procedure Game_Draw()
 		EndIf
 	Next
 	
-	incr = #CellSize	
-	maxX = (width / Zoom) + #CellSize * 2
-	maxY = (height / Zoom) + #CellSize * 2
-	y1 = -#CellSize * 2
-	While (y1 < maxY)
-		fy = (y1 - ScrollY) / #CellSize * 1.0
-		If fy >= 0 And fy < #FieldHeight
-			x1 = -#CellSize * 2
-			While x1 < maxX
-				fx = (x1 - ScrollX) / #CellSize * 1.0
-				If fx >= 0 And fx < #FieldWidth
-					*cell = @Field(fx + fy * #FieldWidth)
-					
-					ForEach *cell\body()
-						*cell\body()\isVisible = 1
-						drawSnake(Str(*cell\body()\snakeIndex)) = *cell\body()\snakeIndex
-					Next
-					
-					If (#FoodRadius * Zoom) > 5
+	; draw food and superfood
+	If (#FoodRadius * Zoom) > 5
+		y1 = -#CellSize * 2
+		While (y1 < maxY)
+			fy = (y1 - ScrollY) / #CellSize * 1.0
+			If fy >= 0 And fy < #FieldHeight
+				x1 = -#CellSize * 2
+				While x1 < maxX
+					fx = (x1 - ScrollX) / #CellSize * 1.0
+					If fx >= 0 And fx < #FieldWidth
+						*cell = @Field(fx + fy * #FieldWidth)
+						
 						ForEach *cell\food()
 							*food = *cell\food()
 							sprite = Sprite(#Sprite_Food + *food\index)
@@ -1089,15 +1085,14 @@ Procedure Game_Draw()
 								                         (y + ScrollY) * Zoom - radius * 0.5)
 							EndIf
 						Next
+						
 					EndIf
-					
-				EndIf
-				x1 + incr
-			Wend
-		EndIf
-		y1 + incr
-	Wend	
-	
+					x1 + incr
+				Wend
+			EndIf
+			y1 + incr
+		Wend
+	EndIf
  	ForEach Spark()
  		If Time > Spark()\time
  			DeleteElement(Spark())
@@ -1212,15 +1207,6 @@ Procedure Game_Draw()
 		
 		Protected text.s
 		
-		text = "BEST: " + Str(LongestSnake)
-		DrawText(width - (TextWidth(text) + 20), 30, text, RGB(255,255,128))
-		
-		
-		If GamePaused
-			text = "- PAUSED -"
-			DrawText((width - TextWidth(text)) * 0.5,  (height - TextHeight(text)) * 0.5, text, RGB(128 + Sin(ElapsedMilliseconds() * 0.005) * 127,0,0))
-		EndIf
-		
 		CompilerIf #DEBUGMODE
 			text = "FPS:  " + Str(FPS)
 			DrawText(20, 30, text, RGB(128,128,128))
@@ -1228,21 +1214,30 @@ Procedure Game_Draw()
 			DrawText(20, 90, text, RGB(128,128,128))
 			text = "FOOD:  " + Str(ListSize(Food()))
 			DrawText(20, 150, text, RGB(128,128,128))
+			If *player
+				text = "RADIUS:  " + StrD(*player\radius, 1)
+				DrawText(10, 210, text, RGB(128,128,128))
+			EndIf
 		CompilerEndIf
+		
+		If GamePaused
+			text = "- PAUSED -"
+			DrawText((width - TextWidth(text)) * 0.5, (height - TextHeight(text)) * 0.5, text, RGB(128 + Sin(ElapsedMilliseconds() * 0.005) * 127,0,0))
+		EndIf
 
+		text = "BEST: " + Str(LongestSnake)
+		DrawText(width - (TextWidth(text) + 30), 30, text, RGB(255,255,128))
+		
 		If *player
-			text = "RADIUS:  " + StrD(*player\radius, 1)
-			DrawText(10, 210, text, RGB(128,128,128))
-			
 			text = "SIZE: " + Str(ListSize(*player\body()) - 1)
-			DrawText(width - (TextWidth(text) + 20), 90, text, RGB(255,255,255))
+			DrawText(width - (TextWidth(text) + 30), 90, text, RGB(255,255,255))
 		ElseIf GamePaused = #False
 			text = "- PRESS 'LEFT CONTROL' TO START -"
-			DrawText((width - TextWidth(text)) * 0.5,  (height - TextHeight(text)) * 0.5 - 60, text, RGB(128 + Sin(Time * 0.005) * 127,0,0))
+			DrawText((width - TextWidth(text)) * 0.5, (height - TextHeight(text)) * 0.5 - 60, text, RGB(128 + Sin(Time * 0.005) * 127,0,0))
 			text = "CURSOR KEYS = DIRECTION | LEFT-CONTROL-KEY = SPEED UP"
-			DrawText((width - TextWidth(text)) * 0.5,  (height - TextHeight(text)) * 0.5, text, RGB(64,64,64))
+			DrawText((width - TextWidth(text)) * 0.5, (height - TextHeight(text)) * 0.5, text, RGB(64,64,64))
 			text = "...OR USE MOUSE"
-			DrawText((width - TextWidth(text)) * 0.5,  (height- TextHeight(text)) * 0.5 + 60, text, RGB(64,64,64))
+			DrawText((width - TextWidth(text)) * 0.5, (height- TextHeight(text)) * 0.5 + 60, text, RGB(64,64,64))
 		EndIf
 		
 		StopDrawing()
@@ -1303,6 +1298,7 @@ Procedure Game_TestEvents()
 			If (LeftButton = 0) And (KeyboardPushed(#PB_Key_LeftControl) Or MouseButton(#PB_MouseButton_Left))
 				Snake_Add(#Sprite_FirstSnake)
 				Sound_Play(#Sound_respawn)
+				CameraShake = 0
 			EndIf
 		ElseIf *player\state = #Snake_Alive
 			If MouseDeltaX() Or MouseDeltaY()
@@ -1385,11 +1381,14 @@ Procedure Game_Free()
 EndProcedure
 
 Procedure Game_New()
-	Protected i, index, s, startColor, colIncr, foodCount, foodPerCell  = 2
+	Protected i, index, s, startColor, colIncr, foodCount, foodPerCell = 2
 	
 	Game_Free()
 	
-	Dim *SnakeList(#MaxSnakes)
+	Dim Field.Cell(#FieldWidth * #FieldHeight)
+	Dim Sprite(1000)
+	Dim SnakeStyle.SnakeStyle(#MaxStyles)
+	Dim *SnakeList.Snake(1000)
 	
 	LoadFont(0, "Consolas", 24)
 	Sounds_Load(#PB_Compiler_FilePath + "sound\")
@@ -1398,14 +1397,14 @@ Procedure Game_New()
 	Zoom = DesktopScaledX(150) / (#StartRadius + 100)
 	
 	For i = 0 To #MaxStyles - 1
-		SnakeStyle(i)\nrColors = Random(Min(5, #MaxColors), 1)
+		SnakeStyle(i)\nrColors = Random(#MaxColors / 4, 1)
 		
 		startColor = Random(#MaxColors - 1)
 		colIncr = Random(SnakeStyle(i)\nrColors, 1)
 
 		For s = 0 To SnakeStyle(i)\nrColors - 1
 			If Random(5) = 0
-				index = Random(#MaxColors)
+				index + 5
 			Else
 				index = Mod(startColor + Abs(SnakeStyle(i)\nrColors * 0.5 - s * colIncr), #MaxColors)
 			EndIf
@@ -1467,13 +1466,12 @@ Repeat
  	Delay(5)
 ForEver
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 789
-; FirstLine = 766
+; CursorPosition = 1300
+; FirstLine = 1280
 ; Folding = -----
 ; Optimizer
 ; EnableXP
 ; DPIAware
 ; UseIcon = icon\SnakeZ.ico
 ; Executable = SnakeZ.exe
-; DisableDebugger
 ; DisablePurifier = 1,1,1,1
