@@ -962,15 +962,24 @@ Procedure Game_Draw()
 						x = *previous\x + (*body\x - *previous\x) * *snake\delta
 						y = *previous\y + (*body\y - *previous\y) * *snake\delta
 						
-						If (index >= tailIndex) And (*snake\wobbleTime > Time)
-							; snake tail wobble effect
+; 						If (index >= tailIndex) And (*snake\wobbleTime > Time)
+						If (*snake\wobbleTime > Time)
+							; snake wobble effect
 							Protected fade.d = (*snake\wobbleTime - Time) / 1000.0
-							radius + Sin(Time * 0.025 - index) * (fade * 25)
+							radius + Sin(Time * 0.025 - index) * (fade * 15)
 
 							ZoomSprite(sprite, radius, radius)
 							DisplayTransparentSprite(sprite,
 							                         (x + ScrollX) * Zoom - radius * 0.5,
 							                         (y + ScrollY) * Zoom - radius * 0.5)
+							
+							
+							sprite = Sprite(#Sprite_SuperFood + *snake\style\color(index % *snake\style\nrColors))
+							radius * 1.5
+							ZoomSprite(sprite, radius, radius)
+							DisplayTransparentSprite(sprite,
+							                         (x + ScrollX) * Zoom - radius * 0.5,
+							                         (y + ScrollY) * Zoom - radius * 0.5, fade * 255)
 						Else
 							ZoomSprite(sprite, radius, radius)
 							DisplayTransparentSprite(sprite,
@@ -1195,7 +1204,7 @@ Procedure Game_Draw()
 		
 		Protected text.s
 		
-		CompilerIf 1;#DEBUGMODE
+		CompilerIf #DEBUGMODE
 			text = "FPS:  " + Str(FPS)
 			DrawText(20, 30, text, RGB(128,128,128))
 			text = "SNAKES:  " + Str(ListSize(Snake()))
@@ -1258,7 +1267,11 @@ Procedure Game_TestEvents()
 	If KeyboardPushed(#PB_Key_Escape)
 		End
 	EndIf
-
+	
+	If KeyboardReleased(#PB_Key_S)
+		PlaySounds = Bool(Not PlaySounds)
+	EndIf
+	
 	If KeyboardReleased(#PB_Key_P)
 		GamePaused = Bool(Not GamePaused)
 		If GamePaused = #False
@@ -1454,13 +1467,14 @@ Repeat
  	Delay(5)
 ForEver
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 1454
-; FirstLine = 1422
+; CursorPosition = 981
+; FirstLine = 954
 ; Folding = -----
 ; Optimizer
 ; EnableXP
 ; DPIAware
 ; UseIcon = icon\SnakeZ.ico
 ; Executable = SnakeZ.exe
+; DisableDebugger
 ; Compiler = PureBasic 6.00 LTS - C Backend (Windows - x64)
 ; DisablePurifier = 1,1,1,1
