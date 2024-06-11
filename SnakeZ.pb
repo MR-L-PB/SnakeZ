@@ -925,7 +925,7 @@ Procedure Game_Draw()
 			; draw sucked in food
 			ForEach *snake\food()
 				*food = *snake\food()
-				sprite = Sprite(#Sprite_Food + *food\index)
+				sprite = Sprite(#Sprite_Food + *food\index % #MaxColors)
 				radius = Max(#FoodRadius, #FoodRadius + Sin((*food + Time) * 0.004) * 5) * Zoom
 				If *food\index >= #MaxColors
 					radius * 3
@@ -950,8 +950,7 @@ Procedure Game_Draw()
 					
 					If *body <> *head
 						
-						sprite = Sprite(#Sprite_FirstSnake + *snake\style\color(index % *snake\style\nrColors))
-						
+						sprite = Sprite(#Sprite_FirstSnake + *snake\style\color(index % *snake\style\nrColors) % #MaxColors)
 						radius = *snake\radius * 4 * Zoom
 						
 						If index > tailIndex
@@ -974,12 +973,14 @@ Procedure Game_Draw()
 							                         (y + ScrollY) * Zoom - radius * 0.5)
 							
 							
-							sprite = Sprite(#Sprite_SuperFood + *snake\style\color(index % *snake\style\nrColors))
-							radius * 1.5
-							ZoomSprite(sprite, radius, radius)
-							DisplayTransparentSprite(sprite,
-							                         (x + ScrollX) * Zoom - radius * 0.5,
-							                         (y + ScrollY) * Zoom - radius * 0.5, fade * 255)
+							sprite = Sprite(#Sprite_SuperFood + *snake\style\color(index % *snake\style\nrColors) % #MaxColors)
+							If IsSprite(sprite)
+								radius * 1.5
+								ZoomSprite(sprite, radius, radius)
+								DisplayTransparentSprite(sprite,
+								                         (x + ScrollX) * Zoom - radius * 0.5,
+								                         (y + ScrollY) * Zoom - radius * 0.5, fade * 255)
+							EndIf
 						Else
 							ZoomSprite(sprite, radius, radius)
 							DisplayTransparentSprite(sprite,
@@ -990,7 +991,7 @@ Procedure Game_Draw()
 					ElseIf *snake\state <> #Snake_Crashed
 
 						; head
-						sprite = Sprite(#Sprite_FirstSnake + *snake\style\color(0))
+						sprite = Sprite(#Sprite_FirstSnake + *snake\style\color(0) % #MaxColors)
 						radius = *snake\radius * 4 * Zoom
 						
 						ZoomSprite(sprite, radius, radius)
@@ -1064,7 +1065,7 @@ Procedure Game_Draw()
 						
 						ForEach *cell\food()
 							*food = *cell\food()
-							sprite = Sprite(#Sprite_Food + *food\index)
+							sprite = Sprite(#Sprite_Food + *food\index % #MaxColors)
 							
 							If *food\index < #MaxColors
 								radius = Max(#FoodRadius, #FoodRadius + Sin((*food + Time) * 0.004) * 10) * Zoom
@@ -1125,7 +1126,7 @@ Procedure Game_Draw()
 	; draw cursor if mouse moved
 	If DrawCursor > Time
 		If *SnakeList(#Sprite_FirstSnake)
-			sprite = Sprite(#Sprite_SuperFood + *SnakeList(#Sprite_FirstSnake)\style\color(0))
+			sprite = Sprite(#Sprite_SuperFood + *SnakeList(#Sprite_FirstSnake)\style\color(0) % #MaxColors)
 			ZoomSprite(sprite, 64, 64)
 			DisplayTransparentSprite(sprite, MousePosX - SpriteWidth(sprite), MousePosY - SpriteHeight(sprite), (DrawCursor - Time) * (255 / 1000.0))
 		EndIf
@@ -1466,15 +1467,15 @@ Repeat
 	
  	Delay(5)
 ForEver
-; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 981
-; FirstLine = 954
+; IDE Options = PureBasic 6.11 LTS Beta 3 (Windows - x64)
+; CursorPosition = 1130
+; FirstLine = 1127
 ; Folding = -----
+; Markers = 976,977
 ; Optimizer
 ; EnableXP
 ; DPIAware
 ; UseIcon = icon\SnakeZ.ico
 ; Executable = SnakeZ.exe
-; DisableDebugger
 ; Compiler = PureBasic 6.00 LTS - C Backend (Windows - x64)
 ; DisablePurifier = 1,1,1,1
